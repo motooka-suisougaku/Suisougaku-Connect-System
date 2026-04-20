@@ -1582,9 +1582,18 @@ function listenPresence(){
 function renderShareTargets(){
   const sel=document.getElementById('pr-members-select');
   const others=onlineMembers.filter(m=>m.uid!==user?.uid);
-  // Admin can share to all, regular user only to same part
+  
+  // 同じパートのメンバーを自動的に抽出
   const eligible=user?.role==='admin'?others:others.filter(m=>m.part===user?.part);
-  if(!eligible.length){sel.innerHTML='<div style="font-size:11px;color:var(--pr-td);padding:6px 0">共有できる相手がいません</div>';return;}
+  
+  if(!eligible.length){
+    sel.innerHTML='<div style="font-size:11px;color:var(--pr-td);padding:6px 0">同じパートにオンラインのメンバーがいません</div>';
+    return;
+  }
+
+  // ★修正ポイント：見つかったメンバーを自動的に「同期対象(shareTargets)」に追加する
+  eligible.forEach(m => shareTargets.add(m.uid));
+
   sel.innerHTML=eligible.map(m=>{
     const selected=shareTargets.has(m.uid);
     return `<label class="pr-mem-check ${selected?'selected':''}" onclick="toggleShareTarget('${m.uid}',this)">
