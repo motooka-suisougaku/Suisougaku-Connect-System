@@ -1551,7 +1551,11 @@ window.delPreset=function(i){bpmPresets.splice(i,1);localStorage.setItem('suikon
 window.applyPreset=function(v){setBpm(v);showToast(`♩=${v} を設定しました`);};
 
 /* ===================== PRACTICE ROOM ===================== */
-function schoolPrPath(){return `schools/${user?.schoolId||'demo'}/rooms/${user?.part||'unknown'}`;}
+function schoolPrPath(){
+  const sId = user?.schoolId || currentSchool || 'demo';
+  const pId = user?.part || currentPart || 'unknown';
+  return `schools/${sId}/part_rooms/${pId}`;
+}
 async function enterPractice(){
   if(!user) return;
   document.getElementById('pr-room-badge').textContent=`${user.part} 室`;
