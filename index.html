@@ -1567,21 +1567,39 @@ async function leavePresence(){if(presenceRef) await window._FB.deleteDoc(presen
 
 function listenPresence(){
   if(prMembUnsub) prMembUnsub();
-  const {collection,onSnapshot}=window._FB;
-  prMembUnsub=onSnapshot(window._FB.collection(db,`${schoolPrPath()}/members`),snap=>{
-    onlineMembers=[];
-    snap.forEach(d=>onlineMembers.push(d.data()));
-
-    // IDが「pr-mcnt」や「pr-mems」が存在するか確認しながら代入する
-    const mcntEl = document.getElementById('pr-mcnt');
-    const ocntEl = document.getElementById('pr-ocnt');
-    const listEl = document.getElementById('pr-members-select'); // v6ではここがリスト表示を兼ねている場合が多いです
-
-    if(mcntEl) mcntEl.textContent = `${onlineMembers.length}人`;
-    if(ocntEl) ocntEl.textContent = `🟢 ${onlineMembers.length}人オンライン`;
+  const {collection, onSnapshot} = window._FB;
+  
+  // メンバー情報の監視を開始
+  prMembUnsub = onSnapshot(collection(db, `${schoolPrPath()}/members`), snap => {
+    onlineMembers = [];
+    snap.forEach(d => onlineMembers.push(d.data()));
     
-    // メンバー表示の更新
-    renderShareTargets(); 
+    // ① 人数表示の更新（エラー防止のため存在チェック付き）
+    const mcnt = document.getElementById('pr-mcnt');
+    const ocnt = document.getElementById('pr-ocnt');
+    if(mcnt) mcnt.textContent = `${onlineMembers.length}人`;
+    if(ocnt) ocnt.textContent = `🟢 ${onlineMembers.length}人オンライン`;
+
+    // ② メンバーリスト表示（ここが「読み込み中」の場所）
+    const list = document.getElementById('pr-mems');
+    if(list) {
+      if(!onlineMembers.length) {
+        list.innerHTML = '<div class="pr-mems-empty">メンバーなし</div>';
+      } else {
+        list.innerHTML = onlineMembers.map(m => `
+          <div class="pr-mem">
+            <div class="pr-mav ${pcolor ? pcolor(m.part) : ''}">${(m.name||'?').charAt(0)}</div>
+            <div class="pr-mi">
+              <div class="pr-mnm2">${esc(m.name)}</div>
+              <div class="pr-mpart">${esc(m.part)}${m.role==='admin'?' ⭐':''}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+    
+    // ③ 同期ボタン側のリストも更新
+    renderShareTargets();
   });
 }
 
