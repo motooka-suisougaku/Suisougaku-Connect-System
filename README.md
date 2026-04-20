@@ -1,1 +1,0 @@
-# Suisougaku-Connect-System
